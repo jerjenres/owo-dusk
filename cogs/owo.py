@@ -11,15 +11,15 @@
 # (at your option) any later version.
 
 import asyncio
-import json
-
+import time
 from discord.ext import commands, tasks
 from discord.ext.commands import ExtensionNotLoaded
-
 
 class Owo(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.is_on_cooldown = False
+        self.last_execution = 0  # Track last execution time
 
         self.cmd = {
             "cmd_name": self.bot.alias["owo"]["normal"],
@@ -31,10 +31,18 @@ class Owo(commands.Cog):
 
     @tasks.loop(seconds=1)
     async def send_owo(self):
+        current_time = time.time()
+        min_cooldown = self.bot.config_dict["commands"]["owo"]["cooldown"][0]
+
+        if current_time - self.last_execution < min_cooldown:
+            return  # Cooldown active, ignore command
+
+        self.last_execution = current_time  # Update last execution time
+
         if not self.bot.captcha and self.bot.state:
             await asyncio.sleep(self.bot.random_float(self.bot.config_dict["commands"]["owo"]["cooldown"]))
             await self.bot.put_queue(self.cmd)
-    
+
     """gets executed when the cog is first loaded"""
     async def cog_load(self):
         if not self.bot.config_dict["commands"]["owo"]["enabled"]:
@@ -47,7 +55,6 @@ class Owo(commands.Cog):
 
     async def cog_unload(self):
         self.send_owo.stop()
-
 
 async def setup(bot):
     await bot.add_cog(Owo(bot))

@@ -168,7 +168,7 @@ class Captcha(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        if message.channel.id == self.bot.dm.id and message.author.id == self.bot.owo_bot_id:
+        if self.bot.dm and message.channel.id == self.bot.dm.id and message.author.id == self.bot.owo_bot_id:
             if "I have verified that you are human! Thank you! :3" in message.content:
                 time_to_sleep = self.bot.random_float(config_dict['defaultCooldowns']['captchaRestart'])
                 await self.bot.log(f"Captcha solved! - sleeping {time_to_sleep}s before restart.", "#5fd700")
@@ -177,7 +177,7 @@ class Captcha(commands.Cog):
                 
                 return
 
-        if message.channel.id in {self.bot.dm.id, self.bot.cm.id} and message.author.id == self.bot.owo_bot_id:
+        if self.bot.dm and self.bot.cm and message.channel.id in {self.bot.dm.id, self.bot.cm.id} and message.author.id == self.bot.owo_bot_id:
             """Handle normally expected captcha"""
             if (
                 (

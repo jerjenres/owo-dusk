@@ -57,13 +57,12 @@
             ]
         },
         "sac": {
-            "enabled": false,
+            "enabled": true,
             "cooldown": [
                 410,
                 500
             ],
             "rarity": [
-                "c",
                 "u",
                 "r",
                 "e",
@@ -73,7 +72,7 @@
             ]
         },
         "pray": {
-            "enabled": false,
+            "enabled": true,
             "cooldown": [
                 310,
                 400
@@ -110,7 +109,7 @@
             "pingUser": false
         },
         "shop": {
-            "enabled": false,
+            "enabled": true,
             "itemsToBuy": [
                 1
             ],
@@ -120,15 +119,15 @@
             ]
         },
         "owo": {
-            "enabled": false,
+            "enabled": true,
             "cooldown": [
-                10,
+                11,
                 13
             ]
         },
         "autoHuntBot": {
             "enabled": false,
-            "cashToSpend": 10000,
+            "cashToSpend": 100000,
             "upgrader": {
                 "enabled": true,
                 "traits": {
@@ -189,15 +188,15 @@
         "messageRangeToCheck": 6
     },
     "sleep": {
-        "enabled": false,
+        "enabled": true,
         "frequencyPercentage": 50,
         "checkTime": [
             10,
             20
         ],
         "sleeptime": [
-            1,
-            10
+            10,
+            20
         ]
     },
     "misspell": {
@@ -212,7 +211,7 @@
             0.09
         ]
     },
-    "autoDaily": true,
+    "autoDaily": false,
     "cashCheck": true,
     "defaultCooldowns": {
         "longCooldown": [
@@ -258,9 +257,9 @@
             "tiers": {
                 "common": true,
                 "uncommon": true,
-                "rare": true,
-                "epic": true,
-                "mythical": true,
+                "rare": false,
+                "epic": false,
+                "mythical": false,
                 "legendary": false,
                 "fabled": false
             },
@@ -271,13 +270,13 @@
                 "specialGem": false
             }
         },
-        "autoLootbox": true,
-        "autoCrate": true
+        "autoLootbox": false,
+        "autoCrate": false
     },
     "webhook": {
-        "enabled": false,
+        "enabled": true,
         "webhookUselessLog": false,
-        "webhookUrl": "webhook url here",
+        "webhookUrl": "https://discord.com/api/webhooks/1348832107522297937/xDpqI9KmVYqRSo9bDcGS8ASSDi5Sc_ITeKUFG6bhUrkwR10zcsUBQ6fyjt8lD-rnuanT",
         "webhookCaptchaUrl": null,
         "webhookUserIdToPingOnCaptcha": 1
     },

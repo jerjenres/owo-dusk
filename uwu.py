@@ -359,6 +359,8 @@ class MyClient(commands.Bot):
         self.dm, self.cm = None,None
         self.sleep = False
         
+        self.command_cooldowns = {}
+        
         with open("alias.json", "r") as config_file:
             self.alias = json.load(config_file)
 
@@ -479,32 +481,44 @@ class MyClient(commands.Bot):
         return f"{prefix}{data['cmd_name']} {data.get('cmd_arguments', '')}".strip()
 
     async def put_queue(self, cmd_data, priority=False):
-        try:
-            while not self.state or self.sleep or self.captcha:
-                if priority:
-                    await self.queue.put(deepcopy(cmd_data))
-                    return
-                await asyncio.sleep(random.uniform(1.4, 2.9))
-            await self.queue.put(deepcopy(cmd_data))
-        except Exception as e:
-            print(e)
-            print("^ at put_queue")
+        """Adds a command to the queue, but respects cooldowns."""
+        cmd_id = cmd_data.get("id", None)
+
+        if cmd_id:
+            # Get the cooldown range from config.json
+            min_cd, max_cd = self.config_dict["commands"].get(cmd_id, {}).get("cooldown", [0, 0])
+
+            # Get the last execution time for this command
+            last_execution = self.command_cooldowns.get(cmd_id, 0)
+            current_time = time.time()
+
+            if current_time - last_execution < min_cd:
+                return  # Still on cooldown, so don’t add it to the queue
+
+            # Update last execution time before adding to queue
+            self.command_cooldowns[cmd_id] = current_time
+
+        # Add the command to the queue
+        await self.queue.put(deepcopy(cmd_data))
 
     async def remove_queue(self, cmd_data=None, id=None):
+        """Removes a command from the queue safely to prevent duplicate execution issues."""
         if not cmd_data and not id:
-            print("invalid id/cmd_data")
+            print("Invalid id/cmd_data provided to remove_queue()")
             return
+        
         try:
-            async with self.lock:
+            async with self.lock:  # Ensures only one task modifies the queue at a time
                 for index, (command, _) in enumerate(self.checks):
-                    if cmd_data:
-                        if command == cmd_data:
-                            self.checks[index][0]["removed"] = True
-                    else:
-                        if command.get("id", None) == id:
-                            self.checks[index][0]["removed"] = True
+                    if cmd_data and command == cmd_data:
+                        self.checks[index][0]["removed"] = True
+                        return  # Stop after removing one instance
+                    elif id and command.get("id") == id:
+                        self.checks[index][0]["removed"] = True
+                        return  # Stop after removing one instance
         except Exception as e:
-            print(e)
+            print(f"Error in remove_queue(): {e}")
+
 
     async def search_checks(self, id):
         async with self.lock:
@@ -546,8 +560,8 @@ class MyClient(commands.Bot):
             frame_info = traceback.extract_stack()[-2]
             filename = os.path.basename(frame_info.filename)
             lineno = frame_info.lineno
-
-            content_to_print = f"[{current_time}] {self.user} - {text} | [{filename}:{lineno}]"
+            # [{current_time}] {self.user} - {text}
+            content_to_print = f"[{current_time}] OwO - {text} | [{filename}:{lineno}]"
             console.print(content_to_print, style=color, markup=False)
             with lock:
                 if save_log:
@@ -615,7 +629,7 @@ class MyClient(commands.Bot):
                 msg = misspell_word(message)
                 misspelled = True
                 # left off here!
-        if not self.captcha or bypass:
+        if (not self.captcha and self.state) or bypass:
             await self.wait_until_ready()
             if typingIndicator:
                 async with channel.typing():
@@ -699,8 +713,8 @@ class MyClient(commands.Bot):
         self.safety_check_loop.start()
         if self.session is None:
             self.session = aiohttp.ClientSession()
-
-        printBox(f'-Loaded {self.user.name}[*].'.center(console_width - 2), 'bold royal_blue1 ')
+        #{self.user.name}[*]
+        printBox(f'-Loaded OwO Im botting dont ban me[*].'.center(console_width - 2), 'bold royal_blue1 ')
         listUserIds.append(self.user.id)
 
         # Fetch the channel

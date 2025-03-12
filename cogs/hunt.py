@@ -11,14 +11,16 @@
 # (at your option) any later version.
 
 import asyncio
-
+import time
 from discord.ext import commands
 from discord.ext.commands import ExtensionNotLoaded
-
 
 class Hunt(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.is_on_cooldown = False
+        self.last_execution = 0  # Track last execution time
+
         self.cmd = {
             "cmd_name": "",
             "prefix": True,
@@ -37,8 +39,8 @@ class Hunt(commands.Cog):
                 pass
         else:
             self.cmd["cmd_name"] = (
-                self.bot.alias["hunt"]["shortform"] 
-                if self.bot.config_dict["commands"]["hunt"]["useShortForm"] 
+                self.bot.alias["hunt"]["shortform"]
+                if self.bot.config_dict["commands"]["hunt"]["useShortForm"]
                 else self.bot.alias["hunt"]["alias"]
             )
             await self.bot.put_queue(self.cmd)
@@ -51,14 +53,27 @@ class Hunt(commands.Cog):
         try:
             if message.channel.id == self.bot.cm.id and message.author.id == self.bot.owo_bot_id:
                 if 'you found:' in message.content.lower() or "caught" in message.content.lower():
-                    await self.bot.remove_queue(id="hunt")
-                    await asyncio.sleep(self.bot.random_float(self.bot.config_dict["commands"]["hunt"]["cooldown"]))
-                    self.cmd["cmd_name"] = (
-                        self.bot.alias["hunt"]["shortform"] 
-                        if self.bot.config_dict["commands"]["hunt"]["useShortForm"] 
-                        else self.bot.alias["hunt"]["alias"]
-                    )
-                    await self.bot.put_queue(self.cmd)
+                    current_time = time.time()
+                    min_cooldown = self.bot.config_dict["commands"]["hunt"]["cooldown"][0]
+
+                    if current_time - self.last_execution < min_cooldown:
+                        return  # Cooldown active, ignore command
+
+                    self.last_execution = current_time  # Update last execution time
+
+                    if not self.is_on_cooldown:
+                        self.is_on_cooldown = True
+                        await self.bot.remove_queue(id="hunt")
+                        await asyncio.sleep(self.bot.random_float(self.bot.config_dict["commands"]["hunt"]["cooldown"]))
+
+                        self.cmd["cmd_name"] = (
+                            self.bot.alias["hunt"]["shortform"]
+                            if self.bot.config_dict["commands"]["hunt"]["useShortForm"]
+                            else self.bot.alias["hunt"]["alias"]
+                        )
+                        await self.bot.put_queue(self.cmd)
+                        self.is_on_cooldown = False
+
         except Exception as e:
             print(e)
 
