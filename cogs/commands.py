@@ -36,7 +36,7 @@ class Commands(commands.Cog):
     """send commands"""
     @tasks.loop()
     async def send_commands(self):
-        if self.bot.sleep:
+        if self.bot.sleep or not self.bot.state:  # Check both sleep and state
             await asyncio.sleep(self.bot.random_float(self.bot.config_dict["sleep"]["sleeptime"]))
             return
         

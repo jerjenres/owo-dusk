@@ -191,8 +191,8 @@
         "enabled": true,
         "frequencyPercentage": 50,
         "checkTime": [
-            10,
-            20
+            20,
+            30
         ],
         "sleeptime": [
             10,
@@ -250,7 +250,7 @@
     },
     "autoUse": {
         "gems": {
-            "enabled": true,
+            "enabled": false,
             "order": {
                 "lowestToHighest": true
             },

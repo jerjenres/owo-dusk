@@ -365,13 +365,11 @@ class MyClient(commands.Bot):
             self.alias = json.load(config_file)
 
     async def set_stat(self, value):
+        # print(f"SETTING STATE TO: {value}")  # 🔍 For Debugging
         if value:
             self.state = True
             self.state_event.set()
         else:
-            while not self.state:
-                """prevents race issues? Doesn't hurt using while instead of if."""
-                await self.state_event.wait()
             self.state = False
             self.state_event.clear()
 
@@ -399,11 +397,11 @@ class MyClient(commands.Bot):
     async def random_sleep(self):
         await asyncio.sleep(self.random_float(self.config_dict["sleep"]["checkTime"]))
         if random.randint(1, 100) > (100 - self.config_dict["sleep"]["frequencyPercentage"]):
-            await self.set_stat(False)
+            await self.set_stat(False) # Pause
             sleep_time = self.random_float(self.config_dict["sleep"]["sleeptime"])
             await self.log(f"sleeping for {sleep_time}", "#87af87")
             await asyncio.sleep(sleep_time)
-            await self.set_stat(True)
+            await self.set_stat(True) # Resume
             await self.log("sleeping finished!", "#87af87")
 
     @tasks.loop(seconds=7)
@@ -624,12 +622,13 @@ class MyClient(commands.Bot):
             channel = self.cm
         msg = message
         misspelled = False
+        
         if self.config_dict["misspell"]["enabled"]:
             if random.uniform(1,100) < self.config_dict["misspell"]["frequencyPercentage"]:
                 msg = misspell_word(message)
                 misspelled = True
                 # left off here!
-        if (not self.captcha and self.state) or bypass:
+        if not self.captcha or bypass:
             await self.wait_until_ready()
             if typingIndicator:
                 async with channel.typing():
@@ -648,6 +647,8 @@ class MyClient(commands.Bot):
                 else:
                     await channel.send(message, silent=silent)
                 await self.set_stat(True)
+        # else:
+        #     await self.log("Command blocked due to paused state", "#ff5555")
 
     async def slashCommandSender(self, msg, **kwargs):
         try:
@@ -823,4 +824,5 @@ if __name__ == "__main__":
         print(e)
     console.print("Star the repo in our github page if you want us to continue maintaining this proj :>.", style = "thistle1")
     console.rule(style="navy_blue")
+    
     run_bots(tokens_and_channels)
